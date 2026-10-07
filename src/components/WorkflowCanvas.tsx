@@ -10,12 +10,41 @@ import {
   type Connection,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
+import { LoadingOutlined } from '@ant-design/icons'
+import { Tag } from 'antd'
 import { useEffect, useRef } from 'react'
 import { useWorkflowStore } from '../stores/workflow'
 import WorkflowNodeCard from './WorkflowNodeCard'
 import type { WorkflowNode } from '../types/workflow'
 
 const nodeTypes = { workflow: WorkflowNodeCard }
+
+function BatchPanel() {
+  const batches = useWorkflowStore((state) => state.batches)
+  const currentBatchId = useWorkflowStore((state) => state.currentBatchId)
+  const running = useWorkflowStore((state) => state.running)
+  const batch = batches.find((item) => item.batchId === currentBatchId)
+  if (!batch) return null
+  const results = Object.values(batch.results)
+  const success = results.filter((result) => result.status === 'success').length
+  const failed = results.filter((result) => result.status === 'error').length
+  const skipped = results.filter((result) => result.status === 'skipped').length
+  const statusColor = batch.status === 'succeeded' ? 'green' : batch.status === 'failed' ? 'red' : 'blue'
+  return (
+    <Panel position="top-right">
+      <div className="batch-panel">
+        <div className="batch-panel-title">
+          <strong>运行批次</strong>
+          <Tag color={statusColor}>{batch.status}</Tag>
+          {running && <LoadingOutlined spin />}
+        </div>
+        <span>批次号：{batch.batchId}</span>
+        <span>快照号：{batch.snapshotId}</span>
+        <span>成功 {success} · 失败 {failed} · 跳过 {skipped}</span>
+      </div>
+    </Panel>
+  )
+}
 
 function CanvasInner() {
   const wrapperRef = useRef<HTMLDivElement>(null)
@@ -102,6 +131,7 @@ function CanvasInner() {
         <MiniMap nodeColor={(node) => node.data.kind === 'sink' ? '#16a34a' : '#2563eb'} pannable zoomable />
         <Controls />
         {notice && <Panel position="top-center"><div className="canvas-notice">{notice}</div></Panel>}
+        <BatchPanel />
       </ReactFlow>
     </div>
   )

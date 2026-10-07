@@ -52,6 +52,21 @@ button, input, textarea { font: inherit; }
 .flow-wrapper { min-width: 0; min-height: 0; position: relative; background: #f7f9fc; }
 .flow-wrapper .react-flow__edge-path { stroke-width: 2; }
 .canvas-notice { padding: 7px 13px; border: 1px solid #bfdbfe; border-radius: 6px; color: #1d4ed8; background: #eff6ff; box-shadow: 0 5px 16px rgba(37, 99, 235, .12); font-size: 12px; }
+.batch-panel {
+  min-width: 210px;
+  padding: 10px 12px;
+  border: 1px solid #dce4ee;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, .96);
+  box-shadow: 0 6px 16px rgba(31, 45, 65, .1);
+  font-size: 11px;
+  color: #526176;
+  display: grid;
+  gap: 4px;
+}
+.batch-panel-title { display: flex; align-items: center; gap: 8px; }
+.batch-panel-title .ant-tag { margin-inline-end: 0; }
+.stale-tag { margin: 2px 0 6px; }
 .workflow-node {
   width: 216px;
   padding: 12px;

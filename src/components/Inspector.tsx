@@ -48,7 +48,10 @@ export default function Inspector() {
           <Typography.Title level={5}>节点属性</Typography.Title>
           <Typography.Text type="secondary">ID: {node.id}</Typography.Text>
         </div>
-        <Tag color={definition.color}>{statusLabel(node.data.status)}</Tag>
+        <Space>
+          {node.data.stale && <Tag color="orange">结果已过期</Tag>}
+          <Tag color={definition.color}>{statusLabel(node.data.status)}</Tag>
+        </Space>
       </div>
       <Form layout="vertical" className="inspector-form">
         <Form.Item label="节点名称">
@@ -62,7 +65,7 @@ export default function Inspector() {
           />
         </Form.Item>
         <Divider orientation="left">执行参数</Divider>
-        {Object.entries(node.data.config).map(([key, value]) => (
+        {Object.entries(node.data.config).filter(([key]) => key !== 'simulateFail').map(([key, value]) => (
           <Form.Item key={key} label={key}>
             {typeof value === 'boolean' ? (
               <Switch checked={value} onChange={(checked) => updateConfig(node.id, key, checked)} />
@@ -85,6 +88,13 @@ export default function Inspector() {
             )}
           </Form.Item>
         ))}
+        <Divider orientation="left">失败演练</Divider>
+        <Form.Item label="模拟执行失败（演示失败恢复）">
+          <Switch
+            checked={!!node.data.config.simulateFail}
+            onChange={(checked) => updateConfig(node.id, 'simulateFail', checked)}
+          />
+        </Form.Item>
       </Form>
       <Space direction="vertical" style={{ width: '100%' }}>
         <div className="run-facts">

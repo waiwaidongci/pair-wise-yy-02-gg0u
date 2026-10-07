@@ -58,12 +58,12 @@ export function definitionFor(kind: WorkflowNode['data']['kind']) {
 
 export function defaultConfig(kind: WorkflowNode['data']['kind']) {
   const configs: Record<WorkflowNode['data']['kind'], Record<string, string | number | boolean>> = {
-    source: { source: '订单主表', refresh: '实时', sampleRows: 125000 },
-    transform: { expression: 'amount * 1.06', outputField: 'amount_with_tax', keepOriginal: true },
-    filter: { expression: 'status == "已支付"', limit: 50000 },
-    aggregate: { groupBy: 'region', metric: 'sum(amount)', outputField: 'region_total' },
-    join: { joinType: 'left', leftKey: 'customer_id', rightKey: 'id' },
-    sink: { target: '分析数据集市', mode: 'upsert', partition: 'dt' },
+    source: { source: '订单主表', refresh: '实时', sampleRows: 125000, simulateFail: false },
+    transform: { expression: 'amount * 1.06', outputField: 'amount_with_tax', keepOriginal: true, simulateFail: false },
+    filter: { expression: 'status == "已支付"', limit: 50000, simulateFail: false },
+    aggregate: { groupBy: 'region', metric: 'sum(amount)', outputField: 'region_total', simulateFail: false },
+    join: { joinType: 'left', leftKey: 'customer_id', rightKey: 'id', simulateFail: false },
+    sink: { target: '分析数据集市', mode: 'upsert', partition: 'dt', simulateFail: false },
   }
   return configs[kind]
 }

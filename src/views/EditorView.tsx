@@ -11,7 +11,7 @@ import {
   SnippetsOutlined,
   UndoOutlined,
 } from '@ant-design/icons'
-import { useRef } from 'react'
+import { useRef, useEffect } from 'react'
 import type { UploadProps } from 'antd'
 import NodePalette from '../components/NodePalette'
 import Inspector from '../components/Inspector'
@@ -23,6 +23,9 @@ export default function EditorView() {
   const { message } = AntApp.useApp()
   const uploadRef = useRef<HTMLInputElement>(null)
   const store = useWorkflowStore()
+  const hydrate = useWorkflowStore((state) => state.hydrate)
+
+  useEffect(() => { hydrate() }, [hydrate])
 
   function exportJson() {
     const document: WorkflowDocument = {
@@ -31,6 +34,8 @@ export default function EditorView() {
       nodes: store.nodes,
       edges: store.edges,
       savedAt: new Date().toISOString(),
+      snapshots: store.snapshots,
+      batches: store.batches,
     }
     const blob = new Blob([JSON.stringify(document, null, 2)], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
@@ -60,8 +65,27 @@ export default function EditorView() {
 
   async function run() {
     message.loading({ content: '正在模拟执行...', key: 'run' })
-    await store.simulate()
-    message.success({ content: '模拟执行完成', key: 'run' })
+    const summary = await store.simulate()
+    if (!summary) {
+      message.destroy('run')
+      return
+    }
+    if (summary.failed) {
+      message.error({
+        content: `执行失败：节点 ${summary.failedNodeId} 出错，已恢复 ${summary.reused + summary.succeeded} 个成功结果`,
+        key: 'run',
+      })
+    } else if (summary.resumed) {
+      message.success({
+        content: `已从断点继续：重算 ${summary.executed} 个，复用 ${summary.reused} 个缓存结果`,
+        key: 'run',
+      })
+    } else {
+      message.success({
+        content: `执行完成：重算 ${summary.executed} 个，复用 ${summary.reused} 个缓存结果`,
+        key: 'run',
+      })
+    }
   }
 
   return (

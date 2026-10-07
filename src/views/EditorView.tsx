@@ -1,10 +1,11 @@
-import { App as AntApp, Button, Input, Space, Tooltip, Upload } from 'antd'
+import { App as AntApp, Button, Input, Popover, Space, Tooltip, Upload } from 'antd'
 import {
   ApartmentOutlined,
   CloudDownloadOutlined,
   CloudUploadOutlined,
   CopyOutlined,
   DeleteOutlined,
+  HistoryOutlined,
   PlayCircleOutlined,
   RedoOutlined,
   ReloadOutlined,
@@ -16,8 +17,9 @@ import type { UploadProps } from 'antd'
 import NodePalette from '../components/NodePalette'
 import Inspector from '../components/Inspector'
 import WorkflowCanvas from '../components/WorkflowCanvas'
+import BatchHistory from '../components/BatchHistory'
 import { useWorkflowStore } from '../stores/workflow'
-import type { WorkflowDocument } from '../types/workflow'
+import type { LegacyWorkflowDocument, WorkflowDocument } from '../types/workflow'
 
 export default function EditorView() {
   const { message } = AntApp.useApp()
@@ -26,10 +28,13 @@ export default function EditorView() {
 
   function exportJson() {
     const document: WorkflowDocument = {
-      version: 1,
+      version: 2,
       name: store.name,
       nodes: store.nodes,
       edges: store.edges,
+      snapshots: store.snapshots,
+      batches: store.batches,
+      resultCache: store.resultCache,
       savedAt: new Date().toISOString(),
     }
     const blob = new Blob([JSON.stringify(document, null, 2)], { type: 'application/json' })
@@ -39,7 +44,7 @@ export default function EditorView() {
     anchor.download = `${store.name.replace(/\s+/g, '-')}.json`
     anchor.click()
     URL.revokeObjectURL(url)
-    message.success('流程 JSON 已导出')
+    message.success('流程 JSON 已导出（含快照与结果缓存）')
   }
 
   const uploadProps: UploadProps = {
@@ -47,7 +52,7 @@ export default function EditorView() {
     showUploadList: false,
     beforeUpload: async (file) => {
       try {
-        const document = JSON.parse(await file.text()) as WorkflowDocument
+        const document = JSON.parse(await file.text()) as WorkflowDocument | LegacyWorkflowDocument
         if (!Array.isArray(document.nodes) || !Array.isArray(document.edges)) throw new Error('JSON 缺少 nodes 或 edges')
         store.loadDocument(document)
         message.success('流程导入成功')
@@ -59,9 +64,13 @@ export default function EditorView() {
   }
 
   async function run() {
-    message.loading({ content: '正在模拟执行...', key: 'run' })
-    await store.simulate()
-    message.success({ content: '模拟执行完成', key: 'run' })
+    const batch = await store.run()
+    if (!batch) return
+    if (batch.status === 'success') {
+      message.success({ content: `批次执行完成（快照 v${batch.snapshotVersion}）`, key: 'run' })
+    } else {
+      message.warning({ content: '批次未全部成功，成功结果已保留可续跑', key: 'run' })
+    }
   }
 
   return (
@@ -87,7 +96,14 @@ export default function EditorView() {
           <Upload {...uploadProps}><Button icon={<CloudUploadOutlined />}>导入</Button></Upload>
           <Button icon={<CloudDownloadOutlined />} onClick={exportJson}>导出</Button>
           <Button icon={<ReloadOutlined />} onClick={store.reset}>重置</Button>
-          <Button type="primary" icon={<PlayCircleOutlined />} loading={store.running} onClick={run}>模拟执行</Button>
+          <Popover
+            trigger="click"
+            placement="bottomRight"
+            content={<div className="batch-popover"><BatchHistory /></div>}
+          >
+            <Button icon={<HistoryOutlined />}>运行记录</Button>
+          </Popover>
+          <Button type="primary" icon={<PlayCircleOutlined />} loading={store.running} onClick={run}>执行流程</Button>
         </Space>
       </header>
       <main className="editor-grid">

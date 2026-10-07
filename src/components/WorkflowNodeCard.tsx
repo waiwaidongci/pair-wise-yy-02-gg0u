@@ -39,6 +39,7 @@ export default function WorkflowNodeCard({ data, selected }: NodeProps<WorkflowN
       <strong>{data.label}</strong>
       <p>{data.description}</p>
       <div className="node-metrics">
+        {data.reused && <span className="reused-badge">复用</span>}
         {data.rows !== undefined && <span>{data.rows.toLocaleString('zh-CN')} 行</span>}
         {data.duration !== undefined && <span>{data.duration} ms</span>}
       </div>

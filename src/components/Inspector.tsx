@@ -92,6 +92,8 @@ export default function Inspector() {
           <span>输出端口：{definition.outputs.join(' / ') || '无'}</span>
           <span>最近耗时：{node.data.duration ?? '--'} ms</span>
           <span>处理行数：{node.data.rows?.toLocaleString('zh-CN') ?? '--'}</span>
+          <span>结果指纹：{node.data.cacheKey ? node.data.cacheKey.slice(0, 10) : '--'}</span>
+          <span>结果来源：{node.data.status === 'success' ? (node.data.reused ? '缓存复用' : '本次计算') : '--'}</span>
         </div>
         <Button danger block icon={<DeleteOutlined />} onClick={deleteSelection}>删除节点</Button>
       </Space>

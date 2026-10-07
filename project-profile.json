@@ -1,0 +1,11 @@
+{
+  "projectId": "pair-wise-yy-02",
+  "projectName": "FlowPilot 节点式数据工作流编辑器",
+  "category": "数据流程编排",
+  "businessDomain": "研发工具",
+  "projectForm": "完整项目",
+  "codeScope": "frontend",
+  "languages": "React, TypeScript, React Flow, Ant Design, Zustand, Immer, Vite",
+  "summary": "在画布上编排数据处理节点，支持端口类型校验、环检测、模拟执行、自动布局与流程 JSON 导入导出。",
+  "containerized": false
+}
